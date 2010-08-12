@@ -62,4 +62,5 @@ ENOSPC in response to mkdir/mknod/create.
 3. nullfs
 
 nullfs permits to create files/directories until
-it gets OOM killed. 
+it gets OOM killed or malloc()/new() stop working
+(in the later case ot responds with ENOMEM).
