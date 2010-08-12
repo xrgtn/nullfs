@@ -1,0 +1,65 @@
+OVERVIEW
+
+nullfs is FUSE filesystem driver which discards
+all files' data written to it.
+
+Reading from any nullfs file returns EOF.
+
+Regarding directories, different strategies
+exist and several implementations ar provided
+(see below). 
+
+DETAILED DESCRIPTION
+
+Proper implementation requires nullfs driver to
+store metadata for files, directories and special
+files (devices/sockets/fifos), and this may not be
+desirable in some cases because of memory
+footprint.
+
+Therefore 3 implementations are to be provided:
+
+1. nul1fs
+
+nul1fs implements flat filesystem without support
+for directories except the "/" one. Readdir (ls)
+show only "." and ".." entries in "/".
+
+Any file can be created, read or written, because
+lookup for any filename returns TRUE and reports
+root:root owner and 0666 permissions.
+
+Building and mounting:
+
+  xrgtn@xrgtn-q40:~/jff/nullfs$ make nul1fs
+  cc   "-lfuse"  nul1fs.c   -o nul1fs
+  xrgtn@xrgtn-q40:~/jff/nullfs$ mkdir mnt
+  xrgtn@xrgtn-q40:~/jff/nullfs$ ./nul1fs ./mnt
+
+Using:
+
+  xrgtn@xrgtn-q40:~/jff/nullfs$ ls -al ./mnt
+  total 4
+  drwxrwxrwx 2 root  root     0 2010-08-12 12:09 .
+  drwxr-xr-x 3 xrgtn xrgtn 4096 2010-08-12 12:09 ..
+  xrgtn@xrgtn-q40:~/jff/nullfs$ echo foo > ./mnt/bar
+  xrgtn@xrgtn-q40:~/jff/nullfs$ cat ./mnt/bar
+  xrgtn@xrgtn-q40:~/jff/nullfs$ cat ./mnt/foo
+  xrgtn@xrgtn-q40:~/jff/nullfs$ ls -l ./mnt/baz
+  -rw-rw-rw- 1 root root 0 2010-08-12 12:10 ./mnt/baz
+  xrgtn@xrgtn-q40:~/jff/nullfs$ 
+
+2. nulxfs
+
+nulxfs implements nullfs with limited number of
+available inodes. When upper limit is reached,
+old inodes are forgotten if possible (here's
+example when forgetting is impossible:
+cd /tmp/nullfs/ ; while mkdir d ; do cd d ; done).
+If nulxfs cannot free some inodes, it returns
+ENOSPC in response to mkdir/mknod/create.
+
+3. nullfs
+
+nullfs permits to create files/directories until
+it gets OOM killed. 
