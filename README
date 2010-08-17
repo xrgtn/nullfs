@@ -49,14 +49,14 @@ Using:
   -rw-rw-rw- 1 root root 0 2010-08-12 12:10 ./mnt/baz
   xrgtn@xrgtn-q40:~/jff/nullfs$ 
 
-2. nulxfs
+2. nulnfs
 
-nulxfs implements nullfs with limited number of
+nulnfs implements nullfs with limited number of
 available inodes. When upper limit is reached,
 old inodes are forgotten if possible (here's
 example when forgetting is impossible:
 cd /tmp/nullfs/ ; while mkdir d ; do cd d ; done).
-If nulxfs cannot free some inodes, it returns
+If nulnfs cannot free some inodes, it returns
 ENOSPC in response to mkdir/mknod/create.
 
 3. nullfs
