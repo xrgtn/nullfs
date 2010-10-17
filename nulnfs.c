@@ -100,12 +100,22 @@ struct nulnfs_inode *pinode) {
 static struct nulnfs_dirent *alloc_dirent(const char *name,
 ino_t ino, ino_t p_ino, unsigned char d_type) {
     struct nulnfs_dirent *dirent;
-    if (list_empty(&free_dirents)) return NULL;
+    if (list_empty(&free_dirents)) {
+        fprintf(stderr, "ERROR alloc_dirent \"%s\":"
+            " no more free dirents\n", name);
+        return NULL;
+    };
     dirent = list_entry(free_dirents.next, struct nulnfs_dirent,
-        ls_ent);
+        free_ent);
+    fprintf(stderr, "DEBUG alloc_dirent \"%s\":\ndirent=%p\n"
+        "all_dirents=%p\n&free_dirents=%p\nfree_dirents.next=%p\n"
+        "free_dirents.prev=%p\n&all_dirents->ls_ent=%p\n"
+        "&all_dirents->free_ent=%p\n", name, dirent, all_dirents,
+        &free_dirents, free_dirents.next, free_dirents.prev,
+        &all_dirents->ls_ent, &all_dirents->free_ent);
     if (dirent->de.d_off != dirent - all_dirents + 1) {
-        fprintf(stderr, "ERROR alloc_dirent %i: off %i\n",
-            (int)(dirent - all_dirents + 1), dirent->de.d_off);
+        fprintf(stderr, "ERROR alloc_dirent \"%s\": #%i, off %i\n",
+            name, (int)(dirent - all_dirents + 1), dirent->de.d_off);
         return NULL;
     };
     list_del_init(&dirent->free_ent);
@@ -349,14 +359,6 @@ int init_fs(int n_inodes, int n_dirents) {
         INIT_LIST_HEAD(&(all_inodes[i].free_ino));
         list_add_tail(&(all_inodes[i].free_ino), &free_inodes);
     };
-    /* initialize root inode #1: */
-    if (! init_dirnode(all_inodes + 0, 1, 0, 0, 0, 0755)) {
-        fprintf(stderr, "ERROR: cannot initialize indode #1\n");
-        free(all_inodes);
-        free(all_dirents);
-        return 3;
-    };
-
     /* initialize all dirents and list them as free: */
     for (e = 0; e < n_dirents; e++) {
         all_dirents[e].de.d_off = e + 1;
@@ -364,6 +366,14 @@ int init_fs(int n_inodes, int n_dirents) {
         INIT_LIST_HEAD(&(all_dirents[e].ls_ent));
         INIT_LIST_HEAD(&(all_dirents[e].free_ent));
         list_add_tail(&(all_dirents[e].free_ent), &free_dirents);
+    };
+
+    /* initialize root inode #1: */
+    if (! init_dirnode(all_inodes + 0, 1, 0, 0, 0, 0755)) {
+        fprintf(stderr, "ERROR: cannot initialize inode #1\n");
+        free(all_inodes);
+        free(all_dirents);
+        return 3;
     };
     /* initialize root dirent */
     /*
