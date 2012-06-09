@@ -146,6 +146,8 @@ fuse_ino_t i, fuse_ino_t parent_ino, uid_t u, gid_t g, mode_t m) {
     if (p_d_ent == NULL) goto INIT_DIRNODE_ERR1;
     p_dd_ent = alloc_dirent("..", i, parent_ino ? parent_ino : i, DT_DIR);
     if (p_dd_ent == NULL) goto INIT_DIRNODE_ERR2;
+    insert_dirent_into_dirnode(p_d_ent, pinode);
+    insert_dirent_into_dirnode(p_dd_ent, pinode);
     return 1;
 INIT_DIRNODE_ERR2:
     list_add(&p_dd_ent->free_ent, &free_dirents);
@@ -218,6 +220,8 @@ struct fuse_file_info *fi) {
     dinode = all_inodes + ino - 1;
     if (! S_ISDIR(dinode->st.st_mode)) fuse_reply_err(req, ENOTDIR);
     fi->fh = (int) &dinode->ls_ent;
+    fprintf(stderr, "DEBUG nullfs_ll_opendir ino#%i: ls_ent=%p\n",
+        ino, &dinode->ls_ent);
     fuse_reply_open(req, fi);
 }
 
@@ -230,8 +234,12 @@ static struct size_and_pos calculate_ls_buf(
 const struct nulnfs_inode *dinode,
 const struct list_head *pos, size_t max_size) {
     struct size_and_pos ls = {0, NULL};
+    fprintf(stderr, "DEBUG calculate_ls_buf: dirno#%i, pos=%p, "
+        "pos->next=%p\n", (int)(dinode->st.st_ino), pos, pos->next);
     for (ls.pos = pos->next; ls.pos != &dinode->ls_ent
     && ls.pos != pos; ls.pos = ls.pos->next) {
+        fprintf(stderr, "DEBUG calculate_ls_buf: pos=%p, next=%p\n",
+            ls.pos, ls.pos->next);
         const struct nulnfs_dirent *dirent = list_entry(ls.pos,
             const struct nulnfs_dirent, ls_ent);
         size_t e_size = fuse_dirent_size(strlen(dirent->de.d_name));
@@ -272,7 +280,8 @@ size_t size, off_t off, struct fuse_file_info *fi) {
     if (fi == NULL) fuse_reply_err(req, EINVAL);
     dinode = all_inodes + ino - 1;
     if (! S_ISDIR(dinode->st.st_mode)) fuse_reply_err(req, ENOTDIR);
-    printf("readdir: ino %i, offs %i\n", (int) ino, (int) off);
+    fprintf(stderr, "DEBUG readdir: ino#%i, offs %i, fh 0x%x, sz %u\n",
+        (int) ino, (int) off, fi->fh, (unsigned) size);
     if (off) {
         size_t filled_size = 0;
         if (off < 1 || off > n_dirents) fuse_reply_err(req, ENOENT);
@@ -280,6 +289,7 @@ size_t size, off_t off, struct fuse_file_info *fi) {
     } else {
         ls_pos = &dinode->ls_ent;
     };
+    fprintf(stderr, "DEBUG readdir: ls_pos=%p\n", ls_pos);
     ls_buf_end = calculate_ls_buf(dinode, ls_pos, size);
     if (ls_buf_end.size == 0) {
         fuse_reply_buf(req, NULL, 0);
