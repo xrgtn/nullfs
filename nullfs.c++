@@ -37,7 +37,7 @@ static int nullfs_isdir(const char *path) {
 };
 
 static int nullfs_isfile(const char *path) {
-    if (strendswith(path, "/null") || (strcmp(path, "null") == 0))
+    if (strendswith(path, "/foo") || (strcmp(path, "foo") == 0))
         return 1;
     set<string>::const_iterator pos = files.find(string(path));
     return (pos != files.end());
@@ -70,7 +70,7 @@ filler, off_t offset, struct fuse_file_info *fi) {
 
     filler(buf, ".", NULL, 0);
     filler(buf, "..", NULL, 0);
-    filler(buf, "null", NULL, 0);
+    filler(buf, "foo", NULL, 0);
 
     return 0;
 };
