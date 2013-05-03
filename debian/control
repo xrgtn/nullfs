@@ -1,10 +1,11 @@
 Source: nullfs
-Section: unknown
+Section: utils
 Priority: extra
 Maintainer: Philippe Coval <rzr@gna.org>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 8.0.0),
+   libfuse-dev
 Standards-Version: 3.9.3
-Homepage: <insert the upstream URL, if relevant>
+Homepage: https://github.com/xrgtn/nullfs
 #Vcs-Git: git://git.debian.org/collab-maint/nullfs.git
 #Vcs-Browser: http://git.debian.org/?p=collab-maint/nullfs.git;a=summary
 
