@@ -1,4 +1,4 @@
-nullfs (0.0.0-1) unstable; urgency=low
+nullfs (0.0.0-0~rzr1) precise; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 

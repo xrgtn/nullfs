@@ -3,7 +3,8 @@ Section: utils
 Priority: extra
 Maintainer: Philippe Coval <rzr@gna.org>
 Build-Depends: debhelper (>= 8.0.0),
-   libfuse-dev
+  pkg-config,
+  libfuse-dev
 Standards-Version: 3.9.3
 Homepage: https://github.com/xrgtn/nullfs
 #Vcs-Git: git://git.debian.org/collab-maint/nullfs.git
