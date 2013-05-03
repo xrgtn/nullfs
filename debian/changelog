@@ -1,0 +1,5 @@
+nullfs (0.0.0-0~rzr1) precise; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Philippe Coval <rzr@gna.org>  Fri, 03 May 2013 02:44:29 +0200
