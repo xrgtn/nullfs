@@ -59,6 +59,12 @@ cd /tmp/nullfs/ ; while mkdir d ; do cd d ; done).
 If nulnfs cannot free some inodes, it returns
 ENOSPC in response to mkdir/mknod/create.
 
+NOTE: nulnfs hasn't been finished yet (it crashes
+on use) and I have no plans to continue working on
+it at the moment. But two other implementations
+(minimalistic nul1fs one and C++ nullfs) work just
+fine as advertised.
+
 3. nullfs
 
 nullfs permits to create files/directories until
