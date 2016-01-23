@@ -31,10 +31,14 @@ root:root owner and 0666 permissions.
 
 Building and mounting:
 
-  xrgtn@xrgtn-q40:~/jff/nullfs$ make nul1fs
+  xrgtn@ux280p:~/jff/nullfs$ make clean
+  rm -f nul1fs nullfs nulnfs *.o
+  xrgtn@ux280p:~/jff/nullfs$ make
   cc   "-lfuse"  nul1fs.c   -o nul1fs
-  xrgtn@xrgtn-q40:~/jff/nullfs$ mkdir mnt
-  xrgtn@xrgtn-q40:~/jff/nullfs$ ./nul1fs ./mnt
+  g++   "-lfuse" -o nullfs nullfs.c++
+  cc   "-lfuse"  nulnfs.c   -o nulnfs
+  xrgtn@ux280p:~/jff/nullfs$ mkdir mnt
+  xrgtn@ux280p:~/jff/nullfs$ ./nul1fs ./mnt
 
 Using:
 
