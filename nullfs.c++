@@ -13,19 +13,28 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 #include <set>
 #include <string>
+#include <map>
 using std::string;
 using std::set;
+using std::map;
 set<string> dirs;       /* global register of directories */
 set<string> files;      /* global register of files */
+map<string, string> links;      /* global register of symlinks */
 
 static int strendswith(const char *str, const char *sfx) {
     size_t sfx_len = strlen(sfx);
     size_t str_len = strlen(str);
     if (str_len < sfx_len) return 0;
     return (strncmp(str + (str_len - sfx_len), sfx, sfx_len) == 0);
+};
+
+static int nullfs_islink(const char *path) {
+    map<string, string>::const_iterator pos = links.find(string(path));
+    return (pos != links.end());
 };
 
 static int nullfs_isdir(const char *path) {
@@ -52,6 +61,10 @@ static int nullfs_getattr(const char *path, struct stat *stbuf) {
         stbuf->st_nlink = 3;
     } else if (nullfs_isfile(path)) {
         stbuf->st_mode = S_IFREG | 0666;
+        stbuf->st_nlink = 1;
+        stbuf->st_size = 0;
+    } else if (nullfs_islink(path)) {
+        stbuf->st_mode = S_IFLNK | 0666;
         stbuf->st_nlink = 1;
         stbuf->st_size = 0;
     } else {
@@ -137,6 +150,7 @@ static int nullfs_unlink(const char *path) {
     (void) path;
 
     files.erase(string(path));
+    links.erase(string(path));
 
     return 0;
 };
@@ -187,6 +201,20 @@ static int nullfs_utimens(const char *path, const struct timespec ts[2]) {
     return 0;
 };
 
+static int nullfs_symlink(const char *oldpath, const char *newpath) {
+    (void) oldpath;
+    (void) newpath;
+
+    links[string(newpath)] = string(oldpath);
+    return 0;
+}
+
+static int nullfs_readlink(const char *path, char *buf, size_t bufsize) {
+    if (! nullfs_islink(path)) return -ENOENT;
+    memcpy(buf, links[path].c_str(), bufsize);
+    return 0;
+}
+
 static struct fuse_operations nullfs_oper;
 
 int main(int argc, char *argv[]) {
@@ -203,7 +231,10 @@ int main(int argc, char *argv[]) {
     nullfs_oper.truncate = nullfs_truncate;
     nullfs_oper.rename = nullfs_rename;
     nullfs_oper.chmod = nullfs_chmod;
+    nullfs_oper.chown = nullfs_chown;
     nullfs_oper.utimens = nullfs_utimens;
+    nullfs_oper.symlink = nullfs_symlink;
+    nullfs_oper.readlink = nullfs_readlink;
     return fuse_main(argc, argv, &nullfs_oper, NULL);
 };
 
